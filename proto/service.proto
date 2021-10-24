@@ -1,0 +1,21 @@
+package govee_collector;
+
+service DeviceDataProvider {
+  rpc GetDeviceData (GetDeviceDataRequest) returns (GetDeviceDataResponse);
+}
+
+message GetDeviceDataRequest {
+  repeated string unique_ids = 1;
+}
+
+message GetDeviceDataResponse {
+  repeated DeviceData devices = 1;
+}
+
+message DeviceData {
+  required string unique_id = 1;
+  required string friendly_name = 2;
+  optional float temperature_in_c = 3;
+  optional float humidity = 4;
+  optional float battery = 5;
+}

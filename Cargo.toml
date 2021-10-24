@@ -10,3 +10,8 @@ btleplug = "0.9"
 futures = "0.3.17"
 tokio = { version = "1", features = ["full"] }
 thiserror = "1.0.30"
+tonic = "0.5"
+prost = "0.8"
+
+[build-dependencies]
+tonic-build = "0.5"

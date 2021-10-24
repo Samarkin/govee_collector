@@ -1,15 +1,13 @@
 use std::error::Error;
 use std::sync::Arc;
-use std::time::Duration;
 
-use tokio::time::sleep;
-
-use collector::Collector;
-
+use crate::collector::Collector;
 use crate::device_database::DeviceDatabase;
+use crate::server::DeviceDataServer;
 
 mod collector;
 mod device_database;
+mod server;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -21,18 +19,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             collector.start().await.unwrap();
         });
     }
-    loop {
-        sleep(Duration::from_secs(1)).await;
-        for local_name in device_database.get_all_devices() {
-            if let Some(device_data) = collector.get_latest_device_data(local_name).await {
-                println!("{}: {:.1} ºC ({:.2} ºF), {:.1}% humidity. Battery: {}%",
-                         device_database.get_friendly_name(local_name).unwrap(),
-                         device_data.temperature_in_c(),
-                         device_data.temperature_in_f(),
-                         device_data.humidity(),
-                         device_data.battery(),
-                )
-            }
-        }
-    }
+    let address = "0.0.0.0:50051".parse()?;
+    DeviceDataServer::serve(device_database, collector, address).await?;
+    Ok(())
 }
