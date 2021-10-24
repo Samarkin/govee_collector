@@ -1,5 +1,13 @@
 use std::collections::HashMap;
+use std::error::Error;
+use std::fs;
+use std::path::PathBuf;
 
+use dirs::home_dir;
+use serde::Deserialize;
+use toml::from_str;
+
+#[derive(Deserialize)]
 struct Device {
     friendly_name: String,
 }
@@ -9,10 +17,29 @@ pub struct DeviceDatabase {
 }
 
 impl DeviceDatabase {
-    pub fn new() -> DeviceDatabase {
-        let mut devices = HashMap::new();
-        // TODO: Read from the database
-        DeviceDatabase { local_name_to_device: devices }
+    pub fn new(devices_file_path: Option<PathBuf>) -> Result<DeviceDatabase, Box<dyn Error>> {
+        let devices = match devices_file_path.or_else(Self::default_devices_file_path) {
+            Some(path) => match fs::read_to_string(&path) {
+                Ok(file_contents) => from_str(&file_contents)?,
+                Err(err) => {
+                    println!("ERROR: Unable to read configuration file at {:?}: {:?}", path, err);
+                    HashMap::new()
+                },
+            },
+            None => {
+                println!("ERROR: Unable to locate configuration file. Please specify its path explicitly");
+                HashMap::new()
+            }
+        };
+        println!("Loaded configuration for {} devices", devices.len());
+        Ok(DeviceDatabase { local_name_to_device: devices })
+    }
+
+    fn default_devices_file_path() -> Option<PathBuf> {
+        match home_dir() {
+            Some(path) => Some(path.join(".govee_devices.toml")),
+            None => None,
+        }
     }
 
     pub fn contains_device(&self, local_name: &String) -> bool {

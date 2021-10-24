@@ -5,17 +5,32 @@ Microservice for collecting and processing data from Govee bluetooth hygrometers
 ## What?
 
 Immediately after launch the service starts listening for BLE advertisement data
-from the devices defined in [src/device_database.rs](./src/device_database.rs).
+from the devices defined in `~/.govee_devices.toml`.
 The collected data is accessible via [gRPC](https://grpc.io).
 
 Proto file: [proto/service.proto](./proto/service.proto).
 
 ## How to use?
 
-To run the service, checkout the repository and execute:
-```shell
-cargo run
-```
+1. Checkout the repository:
+
+   ```shell
+   git clone https://github.com/Samarkin/govee_collector
+   cd govee_collector
+   ```
+2. Prepare `.govee_devices.toml` in your home directory. 
+
+   For example:
+   ```toml
+   [GVH5075_6A19]
+   friendly_name = "Living Room"
+   ```
+   
+3. Build and run:
+
+   ```shell
+   cargo run
+   ```
 
 ## Why?
 
