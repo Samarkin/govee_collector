@@ -1,15 +1,23 @@
 use std::error::Error;
 use std::net::SocketAddr;
+use std::pin::Pin;
 use std::sync::Arc;
+use std::time::Duration;
 
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 
-use govee_collector::{DeviceData, GetDeviceDataRequest, GetDeviceDataResponse};
+use govee_collector::{GetDeviceDataRequest, GetDeviceDataResponse, StreamDeviceDataRequest};
 use govee_collector::device_data_provider_server::{DeviceDataProvider, DeviceDataProviderServer};
+use stream_device_data::DeviceDataStream;
+use utils::extract_device_data;
+use utils::resolve_unique_ids;
 
 use crate::collector::Collector;
 use crate::device_database::DeviceDatabase;
+
+mod stream_device_data;
+mod utils;
 
 mod govee_collector {
     tonic::include_proto!("govee_collector"); // The string specified here must match the proto package name
@@ -42,26 +50,26 @@ impl DeviceDataProvider for DeviceDataServer {
         request: Request<GetDeviceDataRequest>,
     ) -> Result<Response<GetDeviceDataResponse>, Status> {
         println!("Got a request {:?}", request);
-        let mut unique_ids: Vec<String> = request.into_inner().unique_ids;
-        if unique_ids.is_empty() {
-            for local_name in self.device_database.get_all_devices() {
-                unique_ids.push(local_name.clone());
-            }
-        }
-        let mut devices = vec![];
-        for local_name in unique_ids {
-            if let Some(device_data) = self.collector.get_latest_device_data(&local_name).await {
-                let friendly_name = self.device_database.get_friendly_name(&local_name).unwrap().clone();
-                devices.push(DeviceData {
-                    unique_id: local_name,
-                    friendly_name,
-                    temperature_in_c: Some(device_data.temperature_in_c()),
-                    humidity: Some(device_data.humidity()),
-                    battery: Some(device_data.battery() as f32),
-                })
-            }
-        }
+        let unique_ids = resolve_unique_ids(&self.device_database, request.into_inner().unique_ids);
+        let devices = extract_device_data(&self.collector, &self.device_database, &unique_ids).await;
         let reply = GetDeviceDataResponse { devices };
         Ok(Response::new(reply))
+    }
+
+    type StreamDeviceDataStream = Pin<Box<DeviceDataStream>>;
+
+    async fn stream_device_data(
+        &self,
+        request: Request<StreamDeviceDataRequest>,
+    ) -> Result<Response<Self::StreamDeviceDataStream>, Status> {
+        println!("Client connected from: {:?}", request.remote_addr());
+        let request = request.into_inner();
+        let device_data_stream = Box::pin(DeviceDataStream::new(
+            Duration::from_secs(request.refresh_interval_in_secs.unwrap_or(60) as u64),
+            Arc::clone(&self.collector),
+            Arc::clone(&self.device_database),
+            Arc::new(resolve_unique_ids(&self.device_database, request.unique_ids))
+        ));
+        Ok(Response::new(device_data_stream))
     }
 }

@@ -2,6 +2,7 @@ package govee_collector;
 
 service DeviceDataProvider {
   rpc GetDeviceData (GetDeviceDataRequest) returns (GetDeviceDataResponse);
+  rpc StreamDeviceData (StreamDeviceDataRequest) returns (stream StreamDeviceDataResponse);
 }
 
 message GetDeviceDataRequest {
@@ -9,6 +10,15 @@ message GetDeviceDataRequest {
 }
 
 message GetDeviceDataResponse {
+  repeated DeviceData devices = 1;
+}
+
+message StreamDeviceDataRequest {
+  repeated string unique_ids = 1;
+  optional uint32 refresh_interval_in_secs = 2; // default: 60
+}
+
+message StreamDeviceDataResponse {
   repeated DeviceData devices = 1;
 }
 
