@@ -5,6 +5,7 @@ use std::sync::Arc;
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral, ScanFilter};
 use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::stream::StreamExt;
+use log::{debug, trace};
 use tokio::sync::RwLock;
 
 use crate::collector::govee_h5075::DeviceData;
@@ -47,8 +48,10 @@ impl Collector {
         self.central.start_scan(ScanFilter::default()).await?;
 
         while let Some(event) = events.next().await {
+            trace!("Received event {:?}", event);
             match event {
                 CentralEvent::DeviceDiscovered(id) => {
+                    debug!("Discovered device {:?}", id);
                     if let Ok(peripheral) = self.central.peripheral(&id).await {
                         if let Some(properties) = peripheral.properties().await? {
                             if let Some(local_name) = properties.local_name {
@@ -57,7 +60,7 @@ impl Collector {
                                     known_devices.insert(id.clone(), local_name.clone());
                                     drop(known_devices);
                                     if let Ok(data) = DeviceData::decode(&properties.manufacturer_data) {
-                                        println!("Received initial data from {}: {:?}", local_name, data);
+                                        debug!("Received initial data from {}: {:?}", local_name, data);
                                         let mut device_data = self.device_data.write().await;
                                         device_data.insert(local_name, data);
                                     }
@@ -73,7 +76,7 @@ impl Collector {
                     let known_devices = self.known_devices.read().await;
                     if let Some(local_name) = known_devices.get(&id) {
                         if let Ok(data) = DeviceData::decode(&manufacturer_data) {
-                            println!("Received data from {}: {:?}", local_name, data);
+                            debug!("Received data from {}: {:?}", local_name, data);
                             let mut device_data = self.device_data.write().await;
                             device_data.insert(local_name.clone(), data);
                         }

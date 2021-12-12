@@ -4,6 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
 
+use log::debug;
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 
@@ -49,7 +50,7 @@ impl DeviceDataProvider for DeviceDataServer {
         &self,
         request: Request<GetDeviceDataRequest>,
     ) -> Result<Response<GetDeviceDataResponse>, Status> {
-        println!("Got a request {:?}", request);
+        debug!("Got a request {:?}", request);
         let unique_ids = resolve_unique_ids(&self.device_database, request.into_inner().unique_ids);
         let devices = extract_device_data(&self.collector, &self.device_database, &unique_ids).await;
         let reply = GetDeviceDataResponse { devices };
@@ -62,7 +63,7 @@ impl DeviceDataProvider for DeviceDataServer {
         &self,
         request: Request<StreamDeviceDataRequest>,
     ) -> Result<Response<Self::StreamDeviceDataStream>, Status> {
-        println!("Client connected from: {:?}", request.remote_addr());
+        debug!("Client connected from: {:?} with request {:?}", request.remote_addr(), request);
         let request = request.into_inner();
         let device_data_stream = Box::pin(DeviceDataStream::new(
             Duration::from_secs(request.refresh_interval_in_secs.unwrap_or(60) as u64),

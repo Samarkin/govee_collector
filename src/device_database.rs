@@ -4,6 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use dirs::home_dir;
+use log::{error, info};
 use serde::Deserialize;
 use toml::from_str;
 
@@ -22,16 +23,16 @@ impl DeviceDatabase {
             Some(path) => match fs::read_to_string(&path) {
                 Ok(file_contents) => from_str(&file_contents)?,
                 Err(err) => {
-                    println!("ERROR: Unable to read configuration file at {:?}: {:?}", path, err);
+                    error!("ERROR: Unable to read configuration file at {:?}: {:?}", path, err);
                     HashMap::new()
                 },
             },
             None => {
-                println!("ERROR: Unable to locate configuration file. Please specify its path explicitly");
+                error!("ERROR: Unable to locate configuration file. Please specify its path explicitly");
                 HashMap::new()
             }
         };
-        println!("Loaded configuration for {} devices", devices.len());
+        info!("Loaded configuration for {} devices", devices.len());
         Ok(DeviceDatabase { local_name_to_device: devices })
     }
 

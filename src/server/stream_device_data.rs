@@ -5,6 +5,7 @@ use std::task::{Context, Poll, Waker};
 use std::time::Duration;
 
 use futures::Stream;
+use log::debug;
 use tokio::time::sleep;
 use tonic::Status;
 
@@ -51,7 +52,7 @@ impl DeviceDataStream {
 
 impl Drop for DeviceDataStream {
     fn drop(&mut self) {
-        println!("Client disconnected");
+        debug!("Client disconnected");
         self.shared_state.lock().expect("Could not lock mutex").waker = None;
     }
 }
