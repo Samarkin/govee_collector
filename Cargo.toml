@@ -22,3 +22,4 @@ env_logger = "0.9"
 
 [build-dependencies]
 tonic-build = "0.5"
+vergen = "3"

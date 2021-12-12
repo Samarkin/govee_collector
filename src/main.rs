@@ -16,7 +16,11 @@ mod device_database;
 mod server;
 
 #[derive(StructOpt)]
-#[structopt(name = "govee_collector", about = "Collects data from Govee devices")]
+#[structopt(
+    name = "govee_collector",
+    about = "Collects data from Govee devices",
+    version = env!("VERGEN_SEMVER"),
+)]
 struct Opt {
     #[structopt(short, long, parse(from_os_str), help = "Selects a TOML file with the list of devices")]
     devices_file: Option<PathBuf>,
