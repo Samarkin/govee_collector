@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -19,6 +20,9 @@ mod server;
 struct Opt {
     #[structopt(short, long, parse(from_os_str), help = "Selects a TOML file with the list of devices")]
     devices_file: Option<PathBuf>,
+
+    #[structopt(short, long, help = "Socket address to listen on", default_value="127.0.0.1:50051")]
+    address: SocketAddr,
 }
 
 #[tokio::main]
@@ -34,8 +38,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             collector.start().await.unwrap();
         });
     }
-    let address = "0.0.0.0:50051".parse()?;
-    info!("Starting gRPC server at {}", &address);
-    DeviceDataServer::serve(device_database, collector, address).await?;
+    info!("Starting gRPC server at {}", &opt.address);
+    DeviceDataServer::serve(device_database, collector, opt.address).await?;
     Ok(())
 }
