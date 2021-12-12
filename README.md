@@ -15,7 +15,7 @@ Proto file: [proto/service.proto](./proto/service.proto).
 1. Checkout the repository:
 
    ```shell
-   git clone https://github.com/Samarkin/govee_collector
+   git clone --recurse-submodules https://github.com/Samarkin/govee_collector
    cd govee_collector
    ```
 2. Prepare `.govee_devices.toml` in your home directory. 
