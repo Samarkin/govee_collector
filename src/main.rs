@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use env_logger::Env;
 use structopt::StructOpt;
+use tokio::time::{Duration, sleep};
 
 use crate::collector::Collector;
 use crate::device_database::DeviceDatabase;
@@ -23,11 +24,14 @@ mod server;
     version = env!("VERGEN_SEMVER"),
 )]
 struct Opt {
-    #[structopt(short, long, parse(from_os_str), help = "Selects a TOML file with the list of devices")]
+    #[structopt(short = "f", long, parse(from_os_str), help = "Selects a TOML file with the list of devices")]
     devices_file: Option<PathBuf>,
 
     #[structopt(short, long, help = "Socket address to listen on", default_value="127.0.0.1:50051")]
     address: SocketAddr,
+
+    #[structopt(short, long, help = "BLE initialization delay (in seconds)", default_value="0")]
+    delay: u8,
 }
 
 #[tokio::main]
@@ -36,6 +40,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let opt = Opt::from_args();
     let device_database = Arc::new(DeviceDatabase::new(opt.devices_file)?);
+    sleep(Duration::from_secs(opt.delay as u64)).await;
     let collector = Arc::new(Collector::new(Arc::clone(&device_database)).await?);
     {
         let collector = Arc::clone(&collector);
