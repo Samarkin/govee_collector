@@ -4,7 +4,6 @@ use std::fs;
 use std::path::PathBuf;
 
 use dirs::home_dir;
-use log::{error, info};
 use serde::Deserialize;
 use toml::from_str;
 

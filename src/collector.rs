@@ -5,7 +5,6 @@ use std::sync::Arc;
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral, ScanFilter};
 use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::stream::StreamExt;
-use log::{debug, trace};
 use tokio::sync::RwLock;
 
 use crate::collector::govee_h5075::DeviceData;

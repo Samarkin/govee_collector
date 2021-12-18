@@ -4,7 +4,6 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
 
-use log::debug;
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 

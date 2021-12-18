@@ -1,10 +1,11 @@
+#[macro_use] extern crate log;
+
 use std::error::Error;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use env_logger::Env;
-use log::info;
 use structopt::StructOpt;
 
 use crate::collector::Collector;

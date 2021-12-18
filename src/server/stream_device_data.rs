@@ -5,7 +5,6 @@ use std::task::{Context, Poll, Waker};
 use std::time::Duration;
 
 use futures::Stream;
-use log::debug;
 use tokio::time::sleep;
 use tonic::Status;
 
