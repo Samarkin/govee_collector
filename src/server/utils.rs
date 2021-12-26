@@ -19,6 +19,14 @@ pub async fn extract_device_data(
                 humidity: Some(device_data.humidity()),
                 battery: Some(device_data.battery() as f32),
             })
+        } else if let Some(friendly_name) = device_database.get_friendly_name(local_name) {
+            devices.push(DeviceData {
+                unique_id: local_name.clone(),
+                friendly_name: friendly_name.clone(),
+                temperature_in_c: None,
+                humidity: None,
+                battery: None,
+            })
         }
     }
     devices
