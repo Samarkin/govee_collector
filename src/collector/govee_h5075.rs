@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 use std::convert::TryInto;
+use std::time::SystemTime;
 
 #[derive(Debug, Copy, Clone)]
 pub struct DeviceData {
     temperature: i32,
     humidity: u16,
     battery: u8,
+    last_update_timestamp: SystemTime,
 }
 
 #[derive(Debug, thiserror::Error, Eq, PartialEq)]
@@ -37,7 +39,9 @@ impl DeviceData {
         let humidity = (raw_data % 1000) as u16;
         // first decimal digits - absolute temperature in ºC (with 1 decimal place)
         let temperature = temp_sign * (raw_data as i32) / 1000;
-        Ok(DeviceData { temperature, humidity, battery })
+        // last update time is now
+        let last_update_timestamp = SystemTime::now();
+        Ok(DeviceData { temperature, humidity, battery, last_update_timestamp })
     }
 
     pub fn temperature_in_c(&self) -> f32 {
@@ -54,6 +58,10 @@ impl DeviceData {
 
     pub fn battery(&self) -> u8 {
         self.battery
+    }
+
+    pub fn last_update_timestamp(&self) -> SystemTime {
+        self.last_update_timestamp
     }
 }
 
